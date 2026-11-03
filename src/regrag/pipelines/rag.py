@@ -32,7 +32,9 @@ class RagPipeline(Pipeline):
     name = "rag"
 
     def __init__(self, retriever, llm, top_n: int = 5, abstain_message: str = "Not found in the indexed RBI documents.",
-                 gate=None, redact_pii: bool = True, block_off_topic: bool = True, no_advice: bool = True) -> None:
+                 gate=None, redact_pii: bool = True, block_off_topic: bool = True, no_advice: bool = True,
+                 retrieval_gate=None) -> None:
+        self.retrieval_gate = retrieval_gate
         self.retriever, self.llm, self.top_n, self.abstain_message = retriever, llm, top_n, abstain_message
         self.gate, self.redact_pii, self.block_off_topic, self.no_advice = gate, redact_pii, block_off_topic, no_advice
 
@@ -46,7 +48,11 @@ class RagPipeline(Pipeline):
             return Answer(question=q, text=OFF_TOPIC_MESSAGE, abstained=True, pipeline=self.name, latency_s=time.time() - t0)
         advice = self.no_advice and is_advice_request(q)
 
-        hits = [c for c, _ in self.retriever.search(q, self.top_n)]
+        scored = self.retriever.search(q, self.top_n)
+        hits = [c for c, _ in scored]
+        if self.retrieval_gate is not None and not self.retrieval_gate.allows(scored):
+            return Answer(question=q, text=self.abstain_message, abstained=True, contexts=[c.text for c in hits],
+                          pipeline=self.name, latency_s=time.time() - t0)
         text = self.llm.generate(
             SYSTEM.format(abstain=self.abstain_message) + (ADVICE_CLAUSE if advice else ""),
             f"Sources:\n{format_sources(hits)}\n\nQuestion: {q}",

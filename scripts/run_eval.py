@@ -57,7 +57,9 @@ def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--suite", choices=["golden", "safety"], default="golden")
     ap.add_argument("--pipelines", nargs="+", default=["hybrid"], choices=["classic", "hybrid", "agentic"])
-    ap.add_argument("--gate", default="none", choices=["none", "llm_judge", "nli_plus_judge"])
+    ap.add_argument("--gate", default="none", choices=["none", "reranker_threshold", "llm_judge", "nli_plus_judge"])
+    ap.add_argument("--rerank", action="store_true", help="rerank the top 20 with bge-reranker (separate stage, own memory)")
+    ap.add_argument("--min-score", type=float, default=None, help="reranker_threshold: abstain below this top score")
     ap.add_argument("--rewrite", action="store_true")
     ap.add_argument("--limit", type=int, default=0, help="only the first N questions (smoke runs)")
     ap.add_argument("--tag", default="")
@@ -87,15 +89,37 @@ def main() -> None:
     print("stage 1: retrieval", flush=True)
     cache: dict[str, dict[str, list]] = {}
     top_n = cfg["reranker"]["top_n"]
-    for name in a.pipelines:
+    rerank = a.rerank or a.gate == "reranker_threshold"
+    pool = 20 if rerank else top_n
+    min_score = a.min_score if a.min_score is not None else cfg["gate"].get("reranker_min_score")    for name in a.pipelines:
         # agentic needs the embedder AND the LLM at the same time (about 4+ GB free RAM)
         base = variants.make_retriever("hybrid" if name == "agentic" else name)
         if name == "agentic":
             base = AgenticRetriever(base, OllamaLLM(model))
         retr = RewritingRetriever(base, DictRewriter(rewrites), cfg["retrieval"]["rrf_k"]) if a.rewrite else base
-        cache[name] = {q: retr.search(q, top_n) for q in qs}
+        cache[name] = {q: retr.search(q, pool) for q in qs}
         del base, retr
         gc.collect()
+
+    if rerank:  # the embedder is freed above; now the reranker gets the memory
+        print("stage 1b: reranking", flush=True)
+        from regrag.retrieval.rerank import Reranker
+        rr = Reranker(cfg["reranker"]["model"])
+        for name in a.pipelines:
+            cache[name] = {q: rr.rerank(q, h, top_n) for q, h in cache[name].items()}
+        del rr
+        gc.collect()
+        if a.suite == "golden":
+            from regrag.gate.threshold import best_threshold
+            tag_of = {mask_pii(it["q"])[0]: it["tag"] for it in items}
+            for name in a.pipelines:
+                top = {q: max((s for _, s in h), default=0.0) for q, h in cache[name].items()}
+                ans = [s for q, s in top.items() if tag_of[q] != "unanswerable"]
+                una = [s for q, s in top.items() if tag_of[q] == "unanswerable"]
+                if ans and una:
+                    t, bal = best_threshold(ans, una)
+                    print(f"{name}: suggested min-score {t:.3f} (balanced accuracy {bal:.2f} on {len(ans)} answerable and "
+                          f"{len(una)} unanswerable questions; the same questions used to pick it, so it is optimistic)", flush=True)
 
     print("stage 2: answering", flush=True)
     llm = OllamaLLM(model)
@@ -104,14 +128,22 @@ def main() -> None:
     if a.gate == "nli_plus_judge":
         from regrag.gate.nli import NLI
         nli = NLI(gcfg["nli_model"])
-    gate = None if a.gate == "none" else EvidenceGate(a.gate, nli, llm, gcfg["entail_threshold"], gcfg["borderline_band"])
+    gate = None if a.gate in ("none", "reranker_threshold") else EvidenceGate(a.gate, nli, llm, gcfg["entail_threshold"], gcfg["borderline_band"])
+    retrieval_gate = None
+    if a.gate == "reranker_threshold":
+        if min_score is None:
+            raise SystemExit("reranker_threshold needs --min-score (or gate.reranker_min_score in config.yaml); "
+                             "run once with --rerank to get a suggestion")
+        from regrag.gate.threshold import RetrievalGate
+        retrieval_gate = RetrievalGate(min_score)
     g = cfg["guardrails"]
 
-    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "n_questions": len(items),
+    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "rerank": rerank, "min_score": min_score if retrieval_gate else None, "n_questions": len(items),
            "corpus_excludes": ["151MD"], "date": time.strftime("%Y-%m-%d %H:%M"), "pipelines": {}}
     for name in a.pipelines:
         pipe = REGISTRY[name](Cached(cache[name]), llm, top_n=top_n, abstain_message=g["abstain_message"], gate=gate,
-                              redact_pii=g["redact_pii"], block_off_topic=g["block_off_topic"], no_advice=g["no_advice"])
+                              redact_pii=g["redact_pii"], block_off_topic=g["block_off_topic"], no_advice=g["no_advice"],
+                              retrieval_gate=retrieval_gate)
         if a.suite == "golden":
             rows = run_benchmark(pipe, items, doc_id)
             out["pipelines"][name] = {"summary": summarize(rows), "rows": rows}

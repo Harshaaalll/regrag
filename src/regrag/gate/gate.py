@@ -29,7 +29,7 @@ class EvidenceGate:
     def __init__(self, mode: str = "nli_plus_judge", nli=None, judge=None, entail_threshold: float = 0.7, band: float = 0.15,
                  check_numbers: bool = False) -> None:
         if mode == "reranker_threshold":
-            raise NotImplementedError("reranker_threshold gate needs reranker scores in the pipeline; not built yet")
+            raise NotImplementedError("reranker_threshold runs before generation: pass RetrievalGate to the pipeline (retrieval_gate=)")
         if mode not in ("none", "llm_judge", "nli_plus_judge"):
             raise ValueError(f"unknown gate mode {mode!r}")
         if mode == "nli_plus_judge" and nli is None:

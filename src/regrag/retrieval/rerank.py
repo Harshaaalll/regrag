@@ -15,3 +15,13 @@ class Reranker:
         scores = self.model.predict([(query, c.text) for c, _ in hits], batch_size=4, show_progress_bar=False)
         order = sorted(range(len(hits)), key=lambda i: scores[i], reverse=True)[:k]
         return [(hits[i][0], float(scores[i])) for i in order]
+
+
+class RerankedRetriever:
+    """Take the base retriever's top `pool`, rerank, keep k. Scores become reranker scores."""
+
+    def __init__(self, base, reranker: Reranker, pool: int = 20) -> None:
+        self.base, self.reranker, self.pool = base, reranker, pool
+
+    def search(self, query: str, k: int = 5) -> list[tuple[Chunk, float]]:
+        return self.reranker.rerank(query, self.base.search(query, self.pool), k)
