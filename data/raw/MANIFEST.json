@@ -8,5 +8,23 @@
   "method": "browser save",
   "pages": 101,
   "sha256": "a2f5e724f1a21282fddd03e2bae1306eeef34663c953b9e111f8d12bf6bfdbdb"
+ },
+ {
+  "file": "155MD.pdf",
+  "title": "भारतीय įरज़वर् बैंक RESERVE BANK OF INDIA RBI/DOR/2025-26/155 DOR.AUT.REC.No.74/24-01-041/2025-26 November 28, 2025 Reserve Bank of India (Commercial Banks – Cre",
+  "source_url": "https://rbidocs.rbi.org.in/rdocs/notification/PDFs/155MD.PDF",
+  "retrieved": "2026-11-03",
+  "method": "browser save",
+  "pages": 34,
+  "sha256": "912d4cafbc1c616d15d0801d98a9f174be5c5591ccc00147ee2afbececb4f2b3"
+ },
+ {
+  "file": "171MD.pdf",
+  "title": "भारतीय įरज़वर् बैंक RESERVE BANK OF INDIA RBI/DOR/2025-26/171 DOR.ORG.REC.No.90/21-04-158/2025-26 November 28, 2025 Reserve Bank of India (Commercial Banks – Man",
+  "source_url": "https://rbidocs.rbi.org.in/rdocs/notification/PDFs/171MD.PDF",
+  "retrieved": "2026-11-03",
+  "method": "browser save",
+  "pages": 44,
+  "sha256": "f86e3712e6a14894c30c91e93c0e16028ff41008c52b4c3b98b2f843a22bc68a"
  }
 ]

@@ -1,0 +1,24 @@
+Metadata-Version: 2.4
+Name: regrag
+Version: 0.1.0
+Summary: Local, evidence-gated RAG benchmark over RBI circulars: classic vs hybrid vs graph vs agentic
+Requires-Python: >=3.11
+Requires-Dist: pydantic>=2.7
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: pymupdf>=1.24
+Requires-Dist: rank-bm25>=0.2.2
+Requires-Dist: sentence-transformers>=3.0
+Requires-Dist: chromadb>=0.5
+Requires-Dist: ollama>=0.3
+Requires-Dist: fastapi>=0.111
+Requires-Dist: uvicorn>=0.30
+Provides-Extra: graph
+Requires-Dist: lightrag-hku>=1.4; extra == "graph"
+Provides-Extra: parse
+Requires-Dist: docling>=2.0; extra == "parse"
+Provides-Extra: eval
+Requires-Dist: ragas>=0.2; extra == "eval"
+Requires-Dist: deepeval>=2.0; extra == "eval"
+Provides-Extra: dev
+Requires-Dist: pytest>=8.0; extra == "dev"
+Requires-Dist: ruff>=0.5; extra == "dev"
