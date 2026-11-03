@@ -1,0 +1,29 @@
+[project]
+name = "regrag"
+version = "0.1.0"
+description = "Local, evidence-gated RAG benchmark over RBI circulars: classic vs hybrid vs graph vs agentic"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7",
+    "pyyaml>=6.0",
+    "pymupdf>=1.24",
+    "rank-bm25>=0.2.2",
+    "sentence-transformers>=3.0",
+    "chromadb>=0.5",
+    "ollama>=0.3",
+    "fastapi>=0.111",
+    "uvicorn>=0.30",
+]
+
+[project.optional-dependencies]
+graph = ["lightrag-hku>=1.4"]
+parse = ["docling>=2.0"]
+eval = ["ragas>=0.2", "deepeval>=2.0"]
+dev = ["pytest>=8.0", "ruff>=0.5"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

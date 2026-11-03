@@ -1,0 +1,38 @@
+# Local-first. Cloud is opt-in per role and only for one-time indexing / judging.
+llm:
+  generator:   {provider: ollama, model: "qwen3:4b"}
+  extractor:   {provider: ollama, model: "qwen3:4b"}   # graph entity extraction; may switch to cloud via env
+  judge:       {provider: ollama, model: "qwen3:4b"}   # gate fallback + RAGAS/DeepEval judge
+embeddings:
+  model: "BAAI/bge-m3"
+  device: cpu
+reranker:
+  model: "BAAI/bge-reranker-v2-m3"
+  top_n: 5
+chunking:
+  strategy: heading_aware     # heading_aware | fixed
+  max_tokens: 400
+  overlap_tokens: 50
+retrieval:
+  top_k: 20
+  rrf_k: 60
+gate:
+  type: nli_plus_judge        # none | reranker_threshold | llm_judge | nli_plus_judge
+  nli_model: "MoritzLaurer/deberta-v3-base-zeroshot-v2.0"
+  entail_threshold: 0.7
+  borderline_band: 0.15       # within band of threshold -> LLM judge decides
+guardrails:
+  scope_only: true              # answer only from the indexed RBI documents
+  require_citation: true        # every claim needs document + page; otherwise abstain
+  abstain_message: "Not found in the indexed RBI documents."
+  no_advice: true               # explain what the rule says; no legal/compliance/financial advice
+  show_version: true            # always print the document's 'Updated as on' date next to answers
+  stale_warning_days: 180       # warn when the source is older than this
+  treat_docs_as_data: true      # ignore instructions found inside retrieved text (prompt-injection)
+  redact_pii: true              # mask Aadhaar/PAN/phone/account numbers in inputs and logs
+  block_off_topic: true         # refuse non-RBI questions
+paths:
+  raw: data/raw
+  processed: data/processed
+  index: data/index
+  golden: evals/golden
