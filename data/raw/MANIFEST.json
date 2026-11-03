@@ -26,5 +26,23 @@
   "method": "browser save",
   "pages": 44,
   "sha256": "f86e3712e6a14894c30c91e93c0e16028ff41008c52b4c3b98b2f843a22bc68a"
+ },
+ {
+  "file": "151MD.pdf",
+  "title": "भारतीय ररज़र्व बैंक RESERVE BANK OF INDIA RBI/DOR/2025-26/151 DOR.CAP.REC.70/21-01-002/2025-26 November 28, 2025 Reserve Bank of India (Commercial Banks - Prude",
+  "source_url": "https://rbidocs.rbi.org.in/rdocs/notification/PDFs/151MD.PDF",
+  "retrieved": "2026-11-03",
+  "method": "browser save",
+  "pages": 412,
+  "sha256": "10f85015b8054a92e3c2ed35e0c52b4cb8054a6d5cab1563ef4b112330f59f40"
+ },
+ {
+  "file": "172MD.pdf",
+  "title": "भारतीय įरज़वर् बैंक RESERVE BANK OF INDIA RBI/DOR/2025-26/172 DOR.SFG.REC.No.91/30.01.021/2025-26 November 28, 2025 Reserve Bank of India (Commercial Banks - Cli",
+  "source_url": "https://rbidocs.rbi.org.in/rdocs/notification/PDFs/172MD.PDF",
+  "retrieved": "2026-11-03",
+  "method": "browser save",
+  "pages": 14,
+  "sha256": "b4dea65449934dc69ff844c995220d250a5ef2fd1402acb105ba594ecff70f85"
  }
 ]

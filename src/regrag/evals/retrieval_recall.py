@@ -15,12 +15,13 @@ def page_spans(chunks: list[Chunk]) -> dict[str, tuple[int, int]]:
     """A chunk only stores its start page; assume it runs up to the next chunk's start page."""
     spans = {}
     for i, c in enumerate(chunks):
-        nxt = chunks[i + 1].page if i + 1 < len(chunks) else c.page
+        same_doc = i + 1 < len(chunks) and chunks[i + 1].doc_id == c.doc_id
+        nxt = chunks[i + 1].page if same_doc else c.page
         spans[c.id] = (c.page, max(c.page, nxt))
     return spans
 
 
-def recall_at_k(items: list[dict], chunks: list[Chunk], search, ks=(1, 3, 5, 10, 20)) -> dict:
+def recall_at_k(items: list[dict], chunks: list[Chunk], search, ks=(1, 3, 5, 10, 20), doc_id: str | None = None) -> dict:
     """Share of answerable questions where a top-k chunk covers at least one gold page.
 
     `strict` counts only the chunk's start page; `loose` counts its whole assumed span.
@@ -34,6 +35,8 @@ def recall_at_k(items: list[dict], chunks: list[Chunk], search, ks=(1, 3, 5, 10,
         hits = search(it["q"], max(ks))
         first = {"strict": None, "loose": None}
         for rank, (c, _) in enumerate(hits, start=1):
+            if doc_id and c.doc_id != doc_id:
+                continue  # a hit in the wrong document never counts
             lo, hi = spans[c.id]
             if first["strict"] is None and c.page in gold:
                 first["strict"] = rank

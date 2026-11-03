@@ -12,7 +12,7 @@
 | Pipelines | classic (dense), hybrid (BM25+dense+RRF+rerank), graph (LightRAG), agentic (route/evaluate/refine) |
 | Evals | RAGAS + DeepEval in GitHub Actions with thresholds; own golden set |
 | Multimodal | Docling/MinerU tables+figures; table-QA subset shows text-only failures |
-| Golden set | LLM-drafted with page citations, **100% hand-verified by Harshal**; report Cohen's kappa judge vs human |
+| Golden set | LLM-drafted with page citations, checked against the PDFs by Claude (changed 2026-11-03: not hand-verified by Harshal); kappa only if a human sample is labelled later |
 | Out of scope (later) | Video RAG, live demo |
 | Timeline | ~3 weeks |
 

@@ -1,0 +1,34 @@
+from __future__ import annotations
+
+from pathlib import Path
+
+import chromadb
+
+from regrag.types import Chunk
+
+
+class ChromaStore:
+    def __init__(self, path: str | Path, name: str = "regrag") -> None:
+        self._col = chromadb.PersistentClient(path=str(path)).get_or_create_collection(
+            name, metadata={"hnsw:space": "cosine"}
+        )
+
+    def count(self) -> int:
+        return self._col.count()
+
+    def add(self, chunks: list[Chunk], embeddings: list[list[float]]) -> None:
+        self._col.upsert(
+            ids=[c.id for c in chunks],
+            embeddings=embeddings,
+            documents=[c.text for c in chunks],
+            metadatas=[{"doc_id": c.doc_id, "page": c.page or 0, "section": c.section or ""} for c in chunks],
+        )
+
+    def search(self, embedding: list[float], k: int = 20) -> list[tuple[Chunk, float]]:
+        r = self._col.query(query_embeddings=[embedding], n_results=k)
+        out = []
+        for id_, doc, meta, dist in zip(r["ids"][0], r["documents"][0], r["metadatas"][0], r["distances"][0]):
+            chunk = Chunk(id=id_, doc_id=meta["doc_id"], text=doc, page=meta["page"] or None,
+                          section=meta["section"] or None)
+            out.append((chunk, 1.0 - dist))  # cosine similarity
+        return out

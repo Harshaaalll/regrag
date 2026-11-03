@@ -3,7 +3,7 @@
 **A local, evidence-gated RAG benchmark over RBI Master Directions.**
 Which RAG design answers Indian banking-regulation questions best, and what does each improvement actually add?
 
-> **Status: early development.** The plan, config and guardrails are in place. No pipeline is implemented yet, and **there are no results yet**. The results tables below are empty on purpose; they will be filled only with measured numbers.
+> **Status: early development (updated 2026-11-04).** Classic and hybrid pipelines are written and have only been smoke-tested on a few questions. A first **retrieval-only** check exists (see below). **No end-to-end benchmark has been run yet**, so the pipeline results tables stay empty on purpose; they will be filled only with measured numbers.
 
 ## Why this project
 
@@ -13,7 +13,7 @@ Principles:
 - **Measure, don't claim.** Every technique is added one at a time with a before/after score.
 - **Abstain over guess.** An evidence gate refuses to answer when the sources don't support it.
 - **Local first.** Query time runs on a CPU-only laptop (Ollama). Cloud models are optional, only for one-time indexing or judging, and flagged wherever used.
-- **Honest evaluation.** The question set is checked by hand, and the LLM judge is compared against human labels.
+- **Honest evaluation.** Every golden question is checked against the source PDF page. The checker is an LLM (Claude), not a human, and the README says so.
 
 ## What it compares
 
@@ -65,10 +65,25 @@ A safety test set (`evals/golden/safety_seed.yaml`, target ~20 items covering ad
 
 ## Evaluation plan
 
-- **Golden set:** ~100 questions drafted with an LLM from the documents and **hand-verified in full by me**. Each is tagged: `lookup`, `table`, `multi-hop`, `amendment`, `unanswerable`.
+- **Golden set:** ~100 questions drafted with an LLM from the documents and **checked against the PDFs by an LLM (Claude); not hand-verified by a human**. Each is tagged: `lookup`, `table`, `multi-hop`, `amendment`, `unanswerable`.
 - **Metrics:** [RAGAS](https://github.com/explodinggradients/ragas) (faithfulness, answer relevancy, context precision/recall) and [DeepEval](https://github.com/confident-ai/deepeval), run in GitHub Actions with thresholds.
-- **Judge check:** agreement between the LLM judge and my labels (Cohen's kappa).
+- **Judge check:** no human labels exist yet, so no judge-vs-human agreement (Cohen's kappa) is reported. If I hand-check a random sample later, kappa will be computed on that sample only.
 - **Cost and speed:** latency per question on a CPU-only machine.
+
+### Retrieval check (exploratory, not a benchmark)
+
+Does the top-k contain the gold page? 26 answerable questions, all from the KYC Directions, searched over a 4-document, 373-chunk corpus (KYC + 3 small Master Directions; the 412-page capital adequacy PDF is not indexed yet). Cells are recall as `strict / loose`: *strict* = the chunk starts on a gold page, *loose* = the chunk's assumed page span covers a gold page. Multi-hop counts a hit if any one gold page is found.
+
+| Retriever | @1 | @5 | @20 |
+|---|---|---|---|
+| BM25 | 0.58 / 0.69 | 0.85 / 0.96 | 0.92 / 0.96 |
+| Dense (bge-m3) | 0.58 / 0.69 | 0.88 / 0.92 | 0.96 / 1.00 |
+| Hybrid (BM25 + dense, RRF) | 0.69 / 0.88 | 0.92 / 0.96 | 0.92 / 0.96 |
+| Hybrid + reranker (bge-reranker-v2-m3) | 0.69 / 0.85 | 0.92 / 0.96 | 0.92 / 0.96 |
+
+How far to trust it: only 26 questions (one question is about 4 points), a small corpus, questions written from the document's own wording, gold pages checked by an LLM and not a human, and a page hit does not prove the answer text reached the model. Treat the differences between rows as noise. The reranker only reorders the same 20 candidates, so it cannot raise recall at 20.
+
+Generation smoke test (no scores): with a small model (`qwen3:1.7b`, used because of low RAM), 1 lookup question was answered correctly with a page citation, 3 unanswerable questions were correctly refused, and 1 multi-hop question was wrongly refused. This is 5 questions, not a measurement.
 
 ### Results
 
@@ -102,7 +117,9 @@ Python 3.11+, Ollama (`qwen3:4b`), `BAAI/bge-m3` embeddings, `BAAI/bge-reranker-
 ```
 src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
-evals/golden/    question sets (including the safety seed)
+scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma)
+tests/           unit tests (chunker, BM25, hybrid fusion, RAG pipeline)
+evals/golden/    question sets: seed_kyc.yaml (30 questions), safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones
 config.yaml      models, chunking, retrieval, gate and guardrail settings
@@ -115,9 +132,9 @@ Documents are RBI Master Directions from the official RBI website (public). The 
 ## Roadmap
 
 - [x] Plan, config, project skeleton, guardrail settings
-- [ ] Corpus of 30-50 RBI documents (1 of 14 starter files collected)
-- [ ] Classic and hybrid baselines
-- [ ] Golden set (30 seed questions, then ~100)
+- [ ] Corpus of 30-50 RBI documents (5 of 14 starter files collected; 4 indexed, the 412-page one is not yet)
+- [ ] Classic and hybrid baselines (code written and smoke-tested; full runs pending)
+- [ ] Golden set (30 seed questions drafted and LLM-checked; then ~100)
 - [ ] Graph and agentic pipelines
 - [ ] Evidence gate and ablation
 - [ ] Table/figure ingestion

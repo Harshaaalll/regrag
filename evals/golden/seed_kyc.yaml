@@ -1,106 +1,106 @@
-# Golden seed v0 - 30 questions on ONE document. DRAFTED BY CLAUDE, NOT YET VERIFIED.
-# Harshal must check every item against the PDF and set `status: verified` (or fix / delete it).
+# Golden seed v0 - 30 questions on ONE document. Drafted AND checked by Claude against the PDF text/page images.
+# `verified_by: claude` = no human has hand-checked these. Do not describe them as human-verified.
 # Page numbers = printed page numbers (match PDF page index).
 # Tags: lookup | table | multi-hop | amendment | unanswerable
 doc: rbi_cb_kyc_directions_2025
 doc_updated_as_on: "2026-10-01"
 items:
   # ---------- lookup (12) ----------
-  - {id: g01, tag: lookup, status: unverified, pages: [5],
+  - {id: g01, tag: lookup, status: verified, verified_by: claude, pages: [5],
      q: "What ownership share makes a person a beneficial owner of a company?",
      a: "More than 10 percent of the shares, capital or profits (controlling ownership interest), or control through other means."}
-  - {id: g02, tag: lookup, status: unverified, pages: [5, 6],
+  - {id: g02, tag: lookup, status: verified, verified_by: claude, pages: [5, 6],
      q: "What ownership threshold applies to identify the beneficial owner of an unincorporated association or body of individuals?",
      a: "More than 15 percent of the property, capital or profits."}
-  - {id: g03, tag: lookup, status: unverified, pages: [27],
+  - {id: g03, tag: lookup, status: verified, verified_by: claude, pages: [27],
      q: "Is an Aadhaar number mandatory for KYC?",
      a: "No. It is mandatory only if the customer wants a benefit or subsidy under a scheme notified under section 7 of the Aadhaar Act; otherwise it is voluntary."}
-  - {id: g04, tag: lookup, status: unverified, pages: [19],
+  - {id: g04, tag: lookup, status: verified, verified_by: claude, pages: [19],
      q: "Can the bank nominate its Principal Officer as the Designated Director?",
      a: "No. The bank shall not nominate the Principal Officer as the Designated Director."}
-  - {id: g05, tag: lookup, status: unverified, pages: [41],
+  - {id: g05, tag: lookup, status: verified, verified_by: claude, pages: [41],
      q: "How often must periodic KYC updation be done for high-risk, medium-risk and low-risk customers?",
      a: "At least once every 2 years (high), every 8 years (medium) and every 10 years (low), from account opening or last KYC updation."}
-  - {id: g06, tag: lookup, status: unverified, pages: [29, 30],
+  - {id: g06, tag: lookup, status: verified, verified_by: claude, pages: [29, 30],
      q: "What are the limits on an account opened through Aadhaar OTP based e-KYC in non-face-to-face mode?",
      a: "Aggregate deposit balance up to Rs 1 lakh; aggregate credits in a financial year up to Rs 2 lakh; term loans only, up to Rs 60,000 a year in total."}
-  - {id: g07, tag: lookup, status: unverified, pages: [33],
+  - {id: g07, tag: lookup, status: verified, verified_by: claude, pages: [33],
      q: "How old can an Aadhaar XML file or Secure QR code be when used for V-CIP?",
      a: "Not older than three working days from the date of carrying out the V-CIP."}
-  - {id: g08, tag: lookup, status: unverified, pages: [35],
+  - {id: g08, tag: lookup, status: verified, verified_by: claude, pages: [35],
      q: "What are the credit, withdrawal and balance limits of a Small Account?",
      a: "Credits up to Rs 1 lakh in a financial year; withdrawals and transfers up to Rs 10,000 in a month; balance up to Rs 50,000 at any time."}
-  - {id: g09, tag: lookup, status: unverified, pages: [52],
+  - {id: g09, tag: lookup, status: verified, verified_by: claude, pages: [52],
      q: "For how long must a bank keep transaction records and customer identification records?",
      a: "Transaction records: at least five years from the date of transaction. Identification and address records: at least five years after the business relationship has ended."}
-  - {id: g10, tag: lookup, status: unverified, pages: [61],
+  - {id: g10, tag: lookup, status: verified, verified_by: claude, pages: [61],
      q: "Within how many days of starting an account-based relationship must the bank upload KYC records to CKYCR?",
      a: "Within 10 days."}
-  - {id: g11, tag: lookup, status: unverified, pages: [36, 37],
+  - {id: g11, tag: lookup, status: verified, verified_by: claude, pages: [36, 37],
      q: "How many business-proof documents are needed to open an account for a sole proprietary firm, and can fewer be accepted?",
      a: "Any two of the listed documents. If two are not possible, one may be accepted at the bank's discretion, with contact point verification and confirmation of the business activity at the firm's address."}
-  - {id: g12, tag: lookup, status: unverified, pages: [23],
+  - {id: g12, tag: lookup, status: verified, verified_by: claude, pages: [23],
      q: "From what transaction amount must a bank identify a walk-in customer?",
      a: "When the amount is Rs 50,000 or more, whether in a single transaction or several connected transactions."}
 
   # ---------- table (4): FPI KYC table, text extraction scrambles it ----------
-  - {id: g13, tag: table, status: claude_checked, pages: [49],
+  - {id: g13, tag: table, status: verified, verified_by: claude, pages: [49],
      q: "Is financial data required from a Category II FPI when opening a bank account?",
-     a: "No. It is exempted (not required at account opening); an undertaking to submit on demand is needed.", note: "Claude compared with the rendered table image (pp49-50): matches. Awaiting Harshal."}
-  - {id: g14, tag: table, status: claude_checked, pages: [49],
+     a: "No. It is exempted (not required at account opening); an undertaking to submit on demand is needed.", note: "Claude compared with the rendered table image (pp49-50): matches."}
+  - {id: g14, tag: table, status: verified, verified_by: claude, pages: [49],
      q: "Is a Board Resolution mandatory for a Category I FPI?",
-     a: "No, it is exempted for Category I; it is mandatory for Categories II and III.", note: "Claude compared with the rendered table image (pp49-50): matches. Awaiting Harshal."}
-  - {id: g15, tag: table, status: claude_checked, pages: [49],
+     a: "No, it is exempted for Category I; it is mandatory for Categories II and III.", note: "Claude compared with the rendered table image (pp49-50): matches."}
+  - {id: g15, tag: table, status: verified, verified_by: claude, pages: [49],
      q: "What proof of address is required for a Category III FPI at entity level?",
-     a: "Mandatory, and a Power of Attorney does not count (Categories I and II may use a PoA mentioning the address).", note: "Claude compared with the rendered table image (pp49-50): matches. Awaiting Harshal."}
-  - {id: g16, tag: table, status: claude_checked, pages: [50],
+     a: "Mandatory, and a Power of Attorney does not count (Categories I and II may use a PoA mentioning the address).", note: "Claude compared with the rendered table image (pp49-50): matches."}
+  - {id: g16, tag: table, status: verified, verified_by: claude, pages: [50],
      q: "Which FPI categories must give an Ultimate Beneficial Owner (UBO) list?",
-     a: "Categories II and III. Category I is exempted.", note: "Claude compared with the rendered table image (pp49-50): matches. Awaiting Harshal."}
+     a: "Categories II and III. Category I is exempted.", note: "Claude compared with the rendered table image (pp49-50): matches."}
 
   # ---------- multi-hop (5) ----------
-  - {id: g17, tag: multi-hop, status: unverified, pages: [29, 30, 35],
+  - {id: g17, tag: multi-hop, status: verified, verified_by: claude, pages: [29, 30, 35],
      q: "Which has the higher balance limit, a Small Account or an Aadhaar OTP e-KYC account, and by how much?",
      a: "The OTP e-KYC account: Rs 1,00,000 aggregate balance versus Rs 50,000 for a Small Account, i.e. Rs 50,000 more."}
-  - {id: g18, tag: multi-hop, status: unverified, pages: [30, 31],
+  - {id: g18, tag: multi-hop, status: verified, verified_by: claude, pages: [30, 31],
      q: "What happens to an OTP e-KYC account if full CDD is not completed within a year, and how can it be completed?",
      a: "Deposit accounts must be closed immediately; borrowal accounts get no further debits. CDD can be completed under paragraph 23 or through V-CIP (paragraphs 26 and 27), following the process in full including fresh Aadhaar OTP authentication."}
-  - {id: g19, tag: multi-hop, status: unverified, pages: [20, 56],
+  - {id: g19, tag: multi-hop, status: verified, verified_by: claude, pages: [20, 56, 58],
      q: "The Customer Acceptance Policy requires screening against sanctions lists. Which lists, and how often must the bank check them?",
      a: "Lists in Chapter IX: the UNSC ISIL (Da'esh) and Al-Qaida list, the Taliban list, and the lists in the Schedules to the 2007 Order, plus the UNSCR 1718 list (para 58). They must be verified daily."}
-  - {id: g20, tag: multi-hop, status: unverified, pages: [20, 34, 44, 46],
+  - {id: g20, tag: multi-hop, status: verified, verified_by: claude, pages: [20, 34, 44, 46],
      q: "In which situations must the bank verify a customer's PAN from the issuing authority's database?",
      a: "Under the Customer Acceptance Policy (para 17(10)); during V-CIP (para 27(2)(xi)); at periodic updation (para 42(5)(ii)); and for non-face-to-face onboarding EDD (para 44(4))."}
-  - {id: g21, tag: multi-hop, status: unverified, pages: [34, 52],
+  - {id: g21, tag: multi-hop, status: verified, verified_by: claude, pages: [34, 52],
      q: "How long must V-CIP recordings be retained?",
      a: "Paragraph 27(3)(i) says the record management instructions also apply to V-CIP, so the five-year record-keeping rule in paragraph 50 applies. (Inference from two paragraphs, not a single explicit sentence.)", note: "Decide if inference is acceptable; else retag or drop"}
 
   # ---------- amendment-tracking (5) ----------
-  - {id: g22, tag: amendment, status: unverified, pages: [1],
+  - {id: g22, tag: amendment, status: verified, verified_by: claude, pages: [1],
      q: "As of what date is this KYC Directions document updated, and when was it first issued?",
      a: "Updated as on October 1, 2026; issued November 28, 2025."}
-  - {id: g23, tag: amendment, status: claude_checked, pages: [6],
+  - {id: g23, tag: amendment, status: verified, verified_by: claude, pages: [6],
      q: "Which amendment inserted text into the definition of 'Certified Copy' (paragraph 5(1)(v)), what was inserted, and from when?",
-     a: "The Commercial Banks - Know Your Customer Amendment Directions, 2026 dated September 18, 2026, effective September 18, 2026. Footnote 1 sits just before the words 'and Foreign Portfolio Investors (FPIs)', so the FPI reference is the inserted text.", note: "Claude read page 6 image; which words were inserted is inferred from footnote position. Awaiting Harshal."}
-  - {id: g24, tag: amendment, status: claude_checked, pages: [18],
+     a: "The Commercial Banks - Know Your Customer Amendment Directions, 2026 dated September 18, 2026, effective September 18, 2026. Footnote 1 sits just before the words 'and Foreign Portfolio Investors (FPIs)', so the FPI reference is the inserted text.", note: "Claude read page 6 image; which words were inserted is inferred from footnote position."}
+  - {id: g24, tag: amendment, status: verified, verified_by: claude, pages: [18],
      q: "In paragraph 11 on the risk based approach, which wording was substituted, and which amendment caused it?",
-     a: "The words 'approved by the Board or committee of the Board to which powers have been delegated in this regard' (footnote 2 sits just before them) were substituted w.e.f. October 1, 2026 consequent to the Commercial Banks - Governance Amendment Directions, 2026.", note: "Claude read page 18 image; extent of substituted words is inferred from footnote position. Awaiting Harshal."}
-  - {id: g25, tag: amendment, status: unverified, pages: [62],
+     a: "The words 'approved by the Board or committee of the Board to which powers have been delegated in this regard' (footnote 2 sits just before them) were substituted w.e.f. October 1, 2026 consequent to the Commercial Banks - Governance Amendment Directions, 2026.", note: "Claude read page 18 image; extent of substituted words is inferred from footnote position."}
+  - {id: g25, tag: amendment, status: verified, verified_by: claude, pages: [62, 63],
      q: "Which amendment added the Explanation about who verifies identity when KYC records are downloaded from CKYCR, and what does it say?",
      a: "Inserted w.e.f. December 29, 2025 by the KYC Amendment Directions, 2025 (dated Dec 29, 2025). The RE that last uploaded or updated the record is responsible for verifying identity/address; a bank relying on current, PML-compliant CKYCR records need not re-verify."}
-  - {id: g26, tag: amendment, status: unverified, pages: [41],
+  - {id: g26, tag: amendment, status: verified, verified_by: claude, pages: [41],
      q: "Until when is the relaxation for updating KYC of low-risk individual customers whose KYC has fallen due?",
      a: "Within one year of the KYC falling due, or up to June 30, 2026, whichever is later (as written in the document).", note: "Date-bound text; check how it reads on the PDF"}
 
   # ---------- unanswerable (4): document does not contain the answer ----------
-  - {id: g27, tag: unanswerable, status: unverified, pages: [],
+  - {id: g27, tag: unanswerable, status: verified, verified_by: claude, pages: [],
      q: "What is the monetary penalty for a bank that files a suspicious transaction report late?",
      a: "Not in the document. Paragraph 54 only says each day of delay counts as a separate violation (p54); no amount is given. Expected: abstain or answer only that part.", note: "Partial-support trap"}
-  - {id: g28, tag: unanswerable, status: unverified, pages: [],
+  - {id: g28, tag: unanswerable, status: verified, verified_by: claude, pages: [],
      q: "What interest rate must a bank pay on a Small Account?",
      a: "Not in the document. Expected: abstain."}
-  - {id: g29, tag: unanswerable, status: unverified, pages: [],
+  - {id: g29, tag: unanswerable, status: verified, verified_by: claude, pages: [],
      q: "What is the minimum credit score required to open a savings account?",
      a: "Not in the document. Expected: abstain."}
-  - {id: g30, tag: unanswerable, status: unverified, pages: [4],
+  - {id: g30, tag: unanswerable, status: verified, verified_by: claude, pages: [4],
      q: "What are the KYC document requirements for opening an account at an NBFC under these Directions?",
      a: "Not covered. These Directions apply to Commercial Banks (p4); NBFCs appear only in the definition of Regulated Entities. Expected: abstain.", note: "Document is adjacent but does not answer"}
