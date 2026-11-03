@@ -53,7 +53,7 @@ flowchart LR
 
 ## Guardrails
 
-Configured in `config.yaml` (enforcement code not written yet):
+Configured in `config.yaml`. Implemented in code (`guardrails.py`, `pipelines/rag.py`, unit-tested with fake models; not yet measured end to end):
 - Answer only from the indexed RBI documents; every claim needs a document and page citation, otherwise abstain
 - No legal, compliance or financial advice; the system explains what a rule says
 - Always show the document's "Updated as on" date, and warn when it is stale
@@ -61,7 +61,7 @@ Configured in `config.yaml` (enforcement code not written yet):
 - Mask personal numbers (Aadhaar, PAN, phone, account) in inputs and logs
 - Refuse off-topic questions
 
-A safety test set (`evals/golden/safety_seed.yaml`, target ~20 items covering advice, off-topic, injection, unanswerable, PII and stale-source questions) will report a pass rate here.
+A safety test set (`evals/golden/safety_seed.yaml`, 20 items covering advice, off-topic, injection, unanswerable, PII and stale-source questions) is checked by rule-based heuristics in `src/regrag/evals/safety.py`. **It has not been run against a real model yet, so no pass rate is reported.** The items were written by an LLM and not reviewed by a human; injection through retrieved documents is not covered yet.
 
 ## Evaluation plan
 
@@ -117,8 +117,9 @@ Python 3.11+, Ollama (`qwen3:4b`), `BAAI/bge-m3` embeddings, `BAAI/bge-reranker-
 ```
 src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
-scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma)
-tests/           unit tests (chunker, BM25, hybrid fusion, RAG pipeline)
+scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma),
+                 run_eval.py (staged benchmark / safety runner)
+tests/           36 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
 evals/golden/    question sets: seed_kyc.yaml (30 questions), safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones
@@ -133,10 +134,10 @@ Documents are RBI Master Directions from the official RBI website (public). The 
 
 - [x] Plan, config, project skeleton, guardrail settings
 - [ ] Corpus of 30-50 RBI documents (5 of 14 starter files collected; 4 indexed, the 412-page one is not yet)
-- [ ] Classic and hybrid baselines (code written and smoke-tested; full runs pending)
+- [ ] Classic and hybrid baselines (code and runner `scripts/run_eval.py` written; the full benchmark has not been run; the runner reports abstain accuracy, citation-page hit rate and latency, and answer correctness still needs a judge)
 - [ ] Golden set (30 seed questions drafted and LLM-checked; then ~100)
-- [ ] Graph and agentic pipelines
-- [ ] Evidence gate and ablation
+- [ ] Graph and agentic pipelines (agentic: decompose, retrieve, check evidence, refine; written and unit-tested with fakes, never run on real models. Graph (LightRAG) deferred until a cloud key or a bigger machine is chosen)
+- [ ] Evidence gate and ablation (gate with NLI + LLM-judge fallback written and unit-tested with fakes; modes none / llm_judge / nli_plus_judge; optional number-grounding check added from the reading list in `docs/RESEARCH.md`, tested with fakes only; reranker_threshold mode not built; no ablation run yet)
 - [ ] Table/figure ingestion
 - [ ] STAIR-inspired and OKF-style pipelines
 - [ ] RAGAS + DeepEval in CI, results tables, diagrams

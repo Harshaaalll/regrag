@@ -1,0 +1,131 @@
+"""Run the golden benchmark or the safety set, in stages so the embedder and Ollama are never in memory together.
+
+  stage 0 (optional, LLM)  rewrite questions            --rewrite
+  stage 1 (embedder)       retrieve top chunks per pipeline and cache them
+  stage 2 (LLM + gate)     answer from the cached chunks and score
+
+Examples (PowerShell, from the project root):
+  $env:REGRAG_LLM_MODEL="qwen3:1.7b"; .venv\\Scripts\\python scripts\\run_eval.py --suite golden --pipelines classic hybrid --gate none
+  .venv\\Scripts\\python scripts\\run_eval.py --suite safety --pipelines hybrid --gate nli_plus_judge --limit 5
+"""
+from __future__ import annotations
+
+import argparse
+import gc
+import json
+import os
+import subprocess
+import time
+
+import yaml
+
+from regrag.config import ROOT, load_config
+from regrag.evals.benchmark import run_benchmark, summarize
+from regrag.evals.retrieval_recall import load_items
+from regrag.evals.safety import load_safety, run_safety
+from regrag.gate.gate import EvidenceGate
+from regrag.guardrails import is_off_topic, mask_pii
+from regrag.llm.ollama_client import OllamaLLM
+from regrag.pipelines.base import REGISTRY
+from regrag.pipelines import variants  # noqa: F401  (registers classic / hybrid)
+from regrag.retrieval.agentic import AgenticRetriever
+from regrag.retrieval.rewrite import QueryRewriter, RewritingRetriever
+from regrag.types import Chunk
+
+
+class Cached:
+    def __init__(self, hits: dict[str, list]) -> None:
+        self.hits = hits
+
+    def search(self, q: str, k: int = 5):
+        return self.hits[q][:k]
+
+
+class DictRewriter:
+    def __init__(self, table: dict[str, str]) -> None:
+        self.table = table
+
+    def rewrite(self, q: str) -> str:
+        return self.table.get(q, q)
+
+
+def free_ollama(model: str) -> None:
+    subprocess.run(["ollama", "stop", model], capture_output=True)
+
+
+def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--suite", choices=["golden", "safety"], default="golden")
+    ap.add_argument("--pipelines", nargs="+", default=["hybrid"], choices=["classic", "hybrid", "agentic"])
+    ap.add_argument("--gate", default="none", choices=["none", "llm_judge", "nli_plus_judge"])
+    ap.add_argument("--rewrite", action="store_true")
+    ap.add_argument("--limit", type=int, default=0, help="only the first N questions (smoke runs)")
+    ap.add_argument("--tag", default="")
+    a = ap.parse_args()
+
+    cfg = load_config()
+    model = os.environ.get("REGRAG_LLM_MODEL") or cfg["llm"]["generator"]["model"]
+    golden_path = ROOT / cfg["paths"]["golden"] / "seed_kyc.yaml"
+    if a.suite == "golden":
+        items = load_items(golden_path)
+        doc_id = yaml.safe_load(golden_path.read_text(encoding="utf-8"))["doc"]
+    else:
+        items = load_safety(ROOT / cfg["paths"]["golden"] / "safety_seed.yaml")
+    if a.limit:
+        items = items[: a.limit]
+    # what the pipeline will actually retrieve for: masked questions that are on topic
+    qs = [mask_pii(it["q"])[0] for it in items]
+    qs = [q for q in qs if not is_off_topic(q)]
+
+    rewrites: dict[str, str] = {}
+    if a.rewrite:
+        print("stage 0: rewriting questions", flush=True)
+        rw = QueryRewriter(OllamaLLM(model))
+        rewrites = {q: rw.rewrite(q) for q in qs}
+        free_ollama(model)
+
+    print("stage 1: retrieval", flush=True)
+    cache: dict[str, dict[str, list]] = {}
+    top_n = cfg["reranker"]["top_n"]
+    for name in a.pipelines:
+        # agentic needs the embedder AND the LLM at the same time (about 4+ GB free RAM)
+        base = variants.make_retriever("hybrid" if name == "agentic" else name)
+        if name == "agentic":
+            base = AgenticRetriever(base, OllamaLLM(model))
+        retr = RewritingRetriever(base, DictRewriter(rewrites), cfg["retrieval"]["rrf_k"]) if a.rewrite else base
+        cache[name] = {q: retr.search(q, top_n) for q in qs}
+        del base, retr
+        gc.collect()
+
+    print("stage 2: answering", flush=True)
+    llm = OllamaLLM(model)
+    gcfg = cfg["gate"]
+    nli = None
+    if a.gate == "nli_plus_judge":
+        from regrag.gate.nli import NLI
+        nli = NLI(gcfg["nli_model"])
+    gate = None if a.gate == "none" else EvidenceGate(a.gate, nli, llm, gcfg["entail_threshold"], gcfg["borderline_band"])
+    g = cfg["guardrails"]
+
+    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "n_questions": len(items),
+           "corpus_excludes": ["151MD"], "date": time.strftime("%Y-%m-%d %H:%M"), "pipelines": {}}
+    for name in a.pipelines:
+        pipe = REGISTRY[name](Cached(cache[name]), llm, top_n=top_n, abstain_message=g["abstain_message"], gate=gate,
+                              redact_pii=g["redact_pii"], block_off_topic=g["block_off_topic"], no_advice=g["no_advice"])
+        if a.suite == "golden":
+            rows = run_benchmark(pipe, items, doc_id)
+            out["pipelines"][name] = {"summary": summarize(rows), "rows": rows}
+        else:
+            out["pipelines"][name] = run_safety(pipe, items)
+        print(name, json.dumps(out["pipelines"][name].get("summary", {k: v for k, v in out["pipelines"][name].items() if k != "rows"}), indent=1), flush=True)
+    free_ollama(model)
+
+    res = ROOT / "evals" / "results"
+    res.mkdir(parents=True, exist_ok=True)
+    path = res / f"{a.suite}_{a.tag or time.strftime('%Y%m%d_%H%M')}.json"
+    path.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
+    print("saved", path)
+
+
+if __name__ == "__main__":
+    main()
