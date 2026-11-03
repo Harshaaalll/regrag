@@ -104,3 +104,23 @@ items:
   - {id: g30, tag: unanswerable, status: verified, verified_by: claude, pages: [4],
      q: "What are the KYC document requirements for opening an account at an NBFC under these Directions?",
      a: "Not covered. These Directions apply to Commercial Banks (p4); NBFCs appear only in the definition of Regulated Entities. Expected: abstain.", note: "Document is adjacent but does not answer"}
+  # g31-g37 added 2026-11-04 (g36 dropped: 170MD says banks open at least four hours, which made it ambiguous).
+  # Checked by keyword search over all 14 PDFs in data/raw, and the hits were read. Not a full read of every page.
+  - {id: g31, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "What minimum average balance must a bank require in a regular savings account?",
+     a: "No required amount is given anywhere. 170MD (Responsible Business Conduct) p35 only says banks must have a policy on penal charges for a shortfall in the minimum balance. Expected: abstain or say only that.", note: "Partial-support trap. Checked after all 14 PDFs were collected."}
+  - {id: g32, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "How much stamp duty must a customer pay when opening a bank account?",
+     a: "Not in the indexed documents. Expected: abstain.", note: "Keyword check: 'stamp duty' = 0 hits"}
+  - {id: g33, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "What is the daily ATM cash withdrawal limit for a debit card?",
+     a: "Not in the indexed documents (no mention of ATM limits). Expected: abstain.", note: "Keyword check: 'ATM' = 0 hits"}
+  - {id: g34, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "What additional KYC checks must a bank carry out for customers who trade in cryptocurrency?",
+     a: "Not in the indexed documents. Expected: abstain.", note: "Keyword check: crypto / bitcoin / virtual asset = 0 hits; KYC-flavoured so retrieval returns nearby KYC text"}
+  - {id: g35, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "What is the maximum number of savings accounts one person may hold in the same bank?",
+     a: "Not in the indexed documents. Expected: abstain.", note: "Keyword check: 'number of accounts' = 0 hits"}
+  - {id: g37, tag: unanswerable, status: verified, verified_by: claude, pages: [],
+     q: "What size must the customer's passport-size photograph be for KYC?",
+     a: "No size is given. KYC requires photographs, and 170MD p67 mentions passport-size photographs for locker hirers, but no dimensions anywhere. Expected: abstain.", note: "Checked against all 14 PDFs by keyword search plus reading the hits"}

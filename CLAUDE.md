@@ -51,7 +51,7 @@ Local, evidence-gated RAG benchmark over RBI Master Directions. Portfolio projec
 
 ## Status (update when it changes)
 - Done (2026-11-04): plan, config, guardrail config, safety seed (6 items), chunker, BM25 / dense / hybrid / reranker retrieval (exploratory recall numbers in README), classic + hybrid pipelines (smoke-tested only), 30-question golden seed (`verified_by: claude`), scripts to register PDFs and build the index.
-- Corpus: 5 of 14 starter PDFs in `data/raw/` (KYC, 155MD, 171MD, 172MD, 151MD). Indexed: all except 151MD (412 pages, too slow on this CPU).
+- Corpus: all 14 starter PDFs in `data/raw/` and registered in MANIFEST (2026-11-04). Indexed so far: KYC, 155MD, 171MD, 172MD only (the other 10 not embedded yet; 151MD is 412 pages, slow on this CPU). Golden set is 36 questions (10 unanswerable), all on the KYC doc. Added since: `gate/grounding.py` (number check), `gate/threshold.py` (reranker_threshold gate), `docs/RESEARCH.md`; 40 tests pass.
 - Machine limit: 7.7 GB RAM. Embedder (~2.3 GB), reranker (~3.5 GB) and Ollama cannot all run together; background jobs get killed. Run models in stages, close Chrome/VS Code, never start a killed job again unless asked.
-- Waiting on Harshal: save the remaining 9 PDFs by hand (Chrome download automation fails even on the personal profile; do not retry it).
+- Next for Harshal: free RAM (about 3 GB), then I index the 10 new PDFs (`scripts/build_index.py`) before the benchmark run. Free RAM was 0.7 GB at last check.
 - Next: when RAM is free (3+ GB available), run `run_eval.py` (golden classic vs hybrid, gate ablation, rewrite before/after, safety); agentic needs ~4+ GB free (embedder + LLM together). Graph (LightRAG) deferred by Harshal until a cloud key or bigger machine.
