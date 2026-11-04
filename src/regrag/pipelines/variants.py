@@ -34,16 +34,21 @@ class AgenticRAG(RagPipeline):
 def make_retriever(name: str, skip: tuple[str, ...] = ("151MD",)):
     """classic = dense only; hybrid = BM25 + dense (RRF). Needs the on-disk index (scripts/build_index.py)."""
     cfg = load_config()
-    dense = DenseRetriever(Embedder(cfg["embeddings"]["model"], cfg["embeddings"]["device"]),
-                           ChromaStore(ROOT / cfg["paths"]["index"]))
-    if name == "classic":
-        return dense
+    store = ChromaStore(ROOT / cfg["paths"]["index"])
     ch = cfg["chunking"]
-    chunks = []
+    # Corpus = documents fully embedded in the index (a half-indexed document would give BM25 and dense different corpora).
+    indexed, chunks, docs = store.doc_counts(), [], []
     for pdf in sorted((ROOT / cfg["paths"]["raw"]).glob("*.pdf")):
-        if pdf.stem not in skip:
-            chunks += chunk_pages(load_pdf(pdf), ch["max_tokens"], ch["overlap_tokens"])
-    return HybridRetriever([BM25Retriever(chunks), dense], cfg["retrieval"]["rrf_k"])
+        if pdf.stem in skip or pdf.stem not in indexed:
+            continue
+        pieces = chunk_pages(load_pdf(pdf), ch["max_tokens"], ch["overlap_tokens"])
+        if indexed[pdf.stem] >= len(pieces):
+            chunks += pieces
+            docs.append(pdf.stem)
+    dense = DenseRetriever(Embedder(cfg["embeddings"]["model"], cfg["embeddings"]["device"]), store, docs)
+    retriever = dense if name == "classic" else HybridRetriever([BM25Retriever(chunks), dense], cfg["retrieval"]["rrf_k"])
+    retriever.docs = docs  # recorded in eval results
+    return retriever
 
 
 def build(name: str, skip: tuple[str, ...] = ("151MD",), gate=None) -> RagPipeline:

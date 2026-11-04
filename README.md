@@ -1,7 +1,13 @@
 # RegRAG
 
-**A local, evidence-gated RAG benchmark over RBI Master Directions.**
-Which RAG design answers Indian banking-regulation questions best, and what does each improvement actually add?
+**Answers questions about RBI banking rules with page citations, and says "not found" when the documents don't support an answer. For people building or testing RAG on regulatory text.**
+
+<!-- TODO: record a 5-10 s GIF of: regrag "Is an Aadhaar number mandatory for KYC?" and save it as docs/demo.gif -->
+![Demo: a RegRAG question answered with a page citation](docs/demo.gif)
+
+`pip install -e .` then `regrag "Is an Aadhaar number mandatory for KYC?"` (needs Python 3.11+, [Ollama](https://ollama.com) and a built index; see [CONTRIBUTING.md](CONTRIBUTING.md))
+
+It is also a benchmark: which RAG design answers Indian banking-regulation questions best, and what does each improvement actually add?
 
 > **Status: early development (updated 2026-11-04).** Classic and hybrid pipelines are written and have only been smoke-tested on a few questions. A first **retrieval-only** check exists (see below). **No end-to-end benchmark has been run yet**, so the pipeline results tables stay empty on purpose; they will be filled only with measured numbers.
 
@@ -119,7 +125,7 @@ src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
 scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma),
                  run_eval.py (staged benchmark / safety runner)
-tests/           40 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
+tests/           42 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
 evals/golden/    question sets: seed_kyc.yaml (36 questions, 10 unanswerable), safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones

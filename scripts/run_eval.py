@@ -58,6 +58,7 @@ def main() -> None:
     ap.add_argument("--suite", choices=["golden", "safety"], default="golden")
     ap.add_argument("--pipelines", nargs="+", default=["hybrid"], choices=["classic", "hybrid", "agentic"])
     ap.add_argument("--gate", default="none", choices=["none", "reranker_threshold", "llm_judge", "nli_plus_judge"])
+    ap.add_argument("--check-numbers", action="store_true", help="gate also fails claims whose numbers are not in the cited text")
     ap.add_argument("--rerank", action="store_true", help="rerank the top 20 with bge-reranker (separate stage, own memory)")
     ap.add_argument("--min-score", type=float, default=None, help="reranker_threshold: abstain below this top score")
     ap.add_argument("--rewrite", action="store_true")
@@ -91,9 +92,12 @@ def main() -> None:
     top_n = cfg["reranker"]["top_n"]
     rerank = a.rerank or a.gate == "reranker_threshold"
     pool = 20 if rerank else top_n
-    min_score = a.min_score if a.min_score is not None else cfg["gate"].get("reranker_min_score")    for name in a.pipelines:
+    min_score = a.min_score if a.min_score is not None else cfg["gate"].get("reranker_min_score")
+    for name in a.pipelines:
         # agentic needs the embedder AND the LLM at the same time (about 4+ GB free RAM)
         base = variants.make_retriever("hybrid" if name == "agentic" else name)
+        corpus_docs = base.docs
+        print("corpus:", corpus_docs, flush=True)
         if name == "agentic":
             base = AgenticRetriever(base, OllamaLLM(model))
         retr = RewritingRetriever(base, DictRewriter(rewrites), cfg["retrieval"]["rrf_k"]) if a.rewrite else base
@@ -128,7 +132,8 @@ def main() -> None:
     if a.gate == "nli_plus_judge":
         from regrag.gate.nli import NLI
         nli = NLI(gcfg["nli_model"])
-    gate = None if a.gate in ("none", "reranker_threshold") else EvidenceGate(a.gate, nli, llm, gcfg["entail_threshold"], gcfg["borderline_band"])
+    gate = None if a.gate in ("none", "reranker_threshold") else EvidenceGate(a.gate, nli, llm, gcfg["entail_threshold"], gcfg["borderline_band"],
+                                                    check_numbers=a.check_numbers)
     retrieval_gate = None
     if a.gate == "reranker_threshold":
         if min_score is None:
@@ -138,8 +143,8 @@ def main() -> None:
         retrieval_gate = RetrievalGate(min_score)
     g = cfg["guardrails"]
 
-    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "rerank": rerank, "min_score": min_score if retrieval_gate else None, "n_questions": len(items),
-           "corpus_excludes": ["151MD"], "date": time.strftime("%Y-%m-%d %H:%M"), "pipelines": {}}
+    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "check_numbers": a.check_numbers, "rerank": rerank, "min_score": min_score if retrieval_gate else None, "n_questions": len(items),
+           "corpus_docs": corpus_docs,"date": time.strftime("%Y-%m-%d %H:%M"), "pipelines": {}}
     for name in a.pipelines:
         pipe = REGISTRY[name](Cached(cache[name]), llm, top_n=top_n, abstain_message=g["abstain_message"], gate=gate,
                               redact_pii=g["redact_pii"], block_off_topic=g["block_off_topic"], no_advice=g["no_advice"],
