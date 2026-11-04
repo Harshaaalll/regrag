@@ -1,0 +1,79 @@
+name: benchmark
+
+# Manual run (Actions tab -> benchmark -> Run workflow). Builds the index and runs the staged benchmark on a
+# GitHub-hosted runner, so the laptop is not needed. Results are uploaded as an artifact.
+# Needs: secret HF_TOKEN, variable REGRAG_DATA_REPO (see docs/BENCHMARK_CI.md).
+on:
+  workflow_dispatch:
+    inputs:
+      model:
+        description: Ollama model for answering and judging
+        default: "qwen3:4b"
+      limit:
+        description: Only the first N questions (0 = all; use 3 for a first test)
+        default: "0"
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    env:
+      HF_TOKEN: ${{ secrets.HF_TOKEN }}
+      REGRAG_DATA_REPO: ${{ vars.REGRAG_DATA_REPO }}
+      REGRAG_LLM_MODEL: ${{ inputs.model }}
+      OLLAMA_MODELS: ${{ github.workspace }}/.ollama-models
+      HF_HOME: ${{ github.workspace }}/.hf-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (CPU-only torch)
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install -e ".[dev]"
+      - name: Cache embedding / NLI / reranker models
+        uses: actions/cache@v4
+        with:
+          path: .hf-cache
+          key: hf-models-v1
+      - name: Fetch the PDFs from the private dataset
+        run: python scripts/fetch_data.py
+      - name: Cache the vector index
+        uses: actions/cache@v4
+        with:
+          path: data/index
+          key: index-${{ hashFiles('data/raw/MANIFEST.json', 'src/regrag/chunking/**', 'config.yaml') }}
+      - name: Build the index (resumable; instant when cached)
+        run: python scripts/build_index.py
+      - name: Install Ollama
+        run: curl -fsSL https://ollama.com/install.sh | sh
+      - name: Cache the Ollama model
+        uses: actions/cache@v4
+        with:
+          path: .ollama-models
+          key: ollama-${{ inputs.model }}
+      - name: Start Ollama and pull the model
+        run: |
+          nohup ollama serve > ollama.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf localhost:11434 >/dev/null && break; sleep 2; done
+          ollama pull "$REGRAG_LLM_MODEL"
+      - name: Golden set, classic vs hybrid, no gate
+        run: python scripts/run_eval.py --suite golden --pipelines classic hybrid --gate none --limit ${{ inputs.limit }} --tag golden_nogate
+      - name: Safety suite
+        run: python scripts/run_eval.py --suite safety --pipelines hybrid --gate none --limit ${{ inputs.limit }} --tag safety_nogate
+      - name: Gate comparison
+        run: |
+          python scripts/run_eval.py --suite golden --pipelines hybrid --gate llm_judge --limit ${{ inputs.limit }} --tag gate_llm_judge
+          python scripts/run_eval.py --suite golden --pipelines hybrid --gate nli_plus_judge --limit ${{ inputs.limit }} --tag gate_nli_judge
+          python scripts/run_eval.py --suite golden --pipelines hybrid --gate nli_plus_judge --check-numbers --limit ${{ inputs.limit }} --tag gate_nli_judge_numbers
+      - name: Query rewriting on
+        run: python scripts/run_eval.py --suite golden --pipelines hybrid --gate none --rewrite --limit ${{ inputs.limit }} --tag golden_rewrite
+      - name: Agentic pipeline
+        run: python scripts/run_eval.py --suite golden --pipelines agentic --gate none --limit ${{ inputs.limit }} --tag golden_agentic
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-results
+          path: evals/results/

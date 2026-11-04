@@ -19,6 +19,8 @@ Local, evidence-gated RAG benchmark over RBI Master Directions. Portfolio projec
 - Out of scope for now: video RAG, live demo, Hinglish queries.
 - Decided 2026-11-05: add ~20 golden questions from 3-4 other docs (155MD credit cards, 171MD outsourcing, 172MD climate, 165MD stressed assets) once indexed; Harshal runs heavy jobs (indexing, benchmark) himself in cmd and I give exact commands; portfolio story = evidence gate/abstention AND pipeline comparison, equally; Harshal added an `s3` extra (boto3) in `pyproject.toml` to store PDFs/index in S3 (details not given yet; never handle his AWS keys).
 
+- Decided 2026-11-05 (replaces "Harshal runs heavy jobs himself"): the laptop was too slow/low on RAM, so heavy runs (index build, benchmark) move to a manual GitHub Actions workflow `.github/workflows/benchmark.yml` (setup in `docs/BENCHMARK_CI.md`; PDFs fetched from a private Hugging Face dataset; Harshal sets the tokens, never me). Written, never run. Local runs (`scripts/run_all.cmd`) remain possible with 3+ GB free.
+
 ## Code conventions
 - Source in `src/regrag/` (layout in README). Every RAG variant implements `pipelines/base.py::Pipeline` so the benchmark can swap them. Shared types in `types.py`; settings read from `config.yaml` via `config.py`.
 - Match existing style: small modules, type hints, minimal comments.

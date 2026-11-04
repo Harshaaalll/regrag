@@ -1,6 +1,21 @@
 from regrag.gate.gate import EvidenceGate
 from regrag.gate.grounding import numbers_in, support_rate, ungrounded_numbers
-from tests.test_gate import FakeJudge, FakeNLI
+
+
+class FakeNLI:
+    def __init__(self, scores: dict[str, float]) -> None:
+        self.scores = scores
+
+    def entail(self, premise: str, hypothesis: str) -> float:
+        return next((v for k, v in self.scores.items() if k in hypothesis), 0.0)
+
+
+class FakeJudge:
+    def __init__(self, reply: str) -> None:
+        self.reply = reply
+
+    def generate(self, system: str, user: str) -> str:
+        return self.reply
 
 
 def test_numbers_normalised():
