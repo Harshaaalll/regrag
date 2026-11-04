@@ -36,3 +36,10 @@ paths:
   processed: data/processed
   index: data/index
   golden: evals/golden
+storage:                        # S3 for raw PDFs; Floci locally (floci start), swap endpoint for real S3
+  endpoint_url: "http://localhost:4566"
+  region: us-east-1
+  bucket: regrag-raw
+  prefix: raw/
+  access_key: test              # dummy creds for Floci; leave empty to use AWS_* env / real creds
+  secret_key: test
