@@ -73,6 +73,7 @@ A safety test set (`evals/golden/safety_seed.yaml`, 20 items covering advice, of
 
 - **Golden set:** ~100 questions drafted with an LLM from the documents and **checked against the PDFs by an LLM (Claude); not hand-verified by a human**. Each is tagged: `lookup`, `table`, `multi-hop`, `amendment`, `unanswerable`.
 - **Metrics:** [RAGAS](https://github.com/explodinggradients/ragas) (faithfulness, answer relevancy, context precision/recall) and [DeepEval](https://github.com/confident-ai/deepeval), run in GitHub Actions with thresholds.
+- **Train/test split:** thresholds (reranker cutoff, NLI threshold) are tuned on a seeded half of the golden questions (`--split train`) and reported on the other half (`--split test`), stratified by question tag. The idea follows the task-partition practice in Google Research's [Harness²](https://github.com/google-research/harness2); the code is my own. Not run yet.
 - **Judge check:** no human labels exist yet, so no judge-vs-human agreement (Cohen's kappa) is reported. If I hand-check a random sample later, kappa will be computed on that sample only.
 - **Cost and speed:** latency per question on a CPU-only machine.
 
@@ -125,7 +126,7 @@ src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
 scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma),
                  run_eval.py (staged benchmark / safety runner)
-tests/           42 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
+tests/           46 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
 evals/golden/    question sets: seed_kyc.yaml (36 questions, 10 unanswerable), safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones

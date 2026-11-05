@@ -23,6 +23,7 @@ from regrag.config import ROOT, load_config
 from regrag.evals.benchmark import run_benchmark, summarize
 from regrag.evals.retrieval_recall import load_items
 from regrag.evals.safety import load_safety, run_safety
+from regrag.evals.split import split_items
 from regrag.gate.gate import EvidenceGate
 from regrag.guardrails import is_off_topic, mask_pii
 from regrag.llm.ollama_client import OllamaLLM
@@ -64,6 +65,9 @@ def main() -> None:
     ap.add_argument("--rewrite", action="store_true")
     ap.add_argument("--limit", type=int, default=0, help="only the first N questions (smoke runs)")
     ap.add_argument("--tag", default="")
+    ap.add_argument("--split", choices=["all", "train", "test"], default="all",
+                    help="golden only: seeded split by question tag. Tune thresholds on train, report on test")
+    ap.add_argument("--seed", type=int, default=42, help="seed for --split")
     a = ap.parse_args()
 
     cfg = load_config()
@@ -74,6 +78,10 @@ def main() -> None:
         doc_id = yaml.safe_load(golden_path.read_text(encoding="utf-8"))["doc"]
     else:
         items = load_safety(ROOT / cfg["paths"]["golden"] / "safety_seed.yaml")
+    if a.split != "all":
+        if a.suite != "golden":
+            raise SystemExit("--split only applies to the golden suite")
+        items = split_items(items, a.seed)[0 if a.split == "train" else 1]
     if a.limit:
         items = items[: a.limit]
     # what the pipeline will actually retrieve for: masked questions that are on topic
@@ -123,7 +131,7 @@ def main() -> None:
                 if ans and una:
                     t, bal = best_threshold(ans, una)
                     print(f"{name}: suggested min-score {t:.3f} (balanced accuracy {bal:.2f} on {len(ans)} answerable and "
-                          f"{len(una)} unanswerable questions; the same questions used to pick it, so it is optimistic)", flush=True)
+                          f"{len(una)} unanswerable questions; {'tuned on the train split: now run with --split test --min-score' if a.split == 'train' else 'the same questions used to pick it, so it is optimistic; use --split train, then --split test'})", flush=True)
 
     print("stage 2: answering", flush=True)
     llm = OllamaLLM(model)
@@ -143,7 +151,7 @@ def main() -> None:
         retrieval_gate = RetrievalGate(min_score)
     g = cfg["guardrails"]
 
-    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "check_numbers": a.check_numbers, "rerank": rerank, "min_score": min_score if retrieval_gate else None, "n_questions": len(items),
+    out = {"suite": a.suite, "model": model, "gate": a.gate, "rewrite": a.rewrite, "check_numbers": a.check_numbers, "rerank": rerank, "min_score": min_score if retrieval_gate else None, "split": a.split, "seed": a.seed, "question_ids": [it["id"] for it in items], "n_questions": len(items),
            "corpus_docs": corpus_docs,"date": time.strftime("%Y-%m-%d %H:%M"), "pipelines": {}}
     for name in a.pipelines:
         pipe = REGISTRY[name](Cached(cache[name]), llm, top_n=top_n, abstain_message=g["abstain_message"], gate=gate,
