@@ -126,8 +126,8 @@ src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
 scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma),
                  run_eval.py (staged benchmark / safety runner)
-tests/           46 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
-evals/golden/    question sets: seed_kyc.yaml (36 questions, 10 unanswerable), safety_seed.yaml
+tests/           49 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
+evals/golden/    question sets: seed_kyc.yaml (36 questions) and seed_other_docs.yaml (21 questions on 4 other documents), 57 in total, 10 unanswerable, safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones
 config.yaml      models, chunking, retrieval, gate and guardrail settings
@@ -142,7 +142,7 @@ Documents are RBI Master Directions from the official RBI website (public). The 
 - [x] Plan, config, project skeleton, guardrail settings
 - [ ] Corpus of 30-50 RBI documents (all 14 starter files collected and registered on 2026-11-04; only 4 are indexed so far, the other 10 still need `scripts/build_index.py` when RAM allows)
 - [ ] Classic and hybrid baselines (code and runner `scripts/run_eval.py` written; the full benchmark has not been run; the runner reports abstain accuracy, citation-page hit rate and latency, and answer correctness still needs a judge)
-- [ ] Golden set (36 seed questions drafted and LLM-checked, all on the KYC document; then ~100)
+- [ ] Golden set (57 seed questions drafted and LLM-checked: 36 on KYC, 21 on credit cards, outsourcing, green deposits and stressed assets; all 10 unanswerable ones are KYC-flavoured; then ~100)
 - [ ] Graph and agentic pipelines (agentic: decompose, retrieve, check evidence, refine; written and unit-tested with fakes, never run on real models. Graph (LightRAG) deferred until a cloud key or a bigger machine is chosen)
 - [ ] Evidence gate and ablation (gate with NLI + LLM-judge fallback written and unit-tested with fakes; modes none / llm_judge / nli_plus_judge; optional number-grounding check added from the reading list in `docs/RESEARCH.md`, tested with fakes only; `reranker_threshold` mode written (abstains before generation when the top reranker score is low; the threshold is not tuned yet and no ablation has been run))
 - [ ] Table/figure ingestion

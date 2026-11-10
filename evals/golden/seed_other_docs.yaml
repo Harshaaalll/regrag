@@ -1,0 +1,78 @@
+# Golden seed, other documents - 21 questions on four RBI Master Directions. Drafted AND checked by Claude against the extracted PDF text
+# of data/raw (each answer was read in its paragraph on the stated page). `verified_by: claude` = no human has hand-checked these.
+# Do not describe them as human-verified. Page numbers = PDF page index (same numbering the chunker stores).
+# `doc` = the PDF file name without .pdf. 155MD = Credit Cards and Debit Cards, 171MD = Managing Risks in Outsourcing,
+# 172MD = Climate Finance (green deposits), 165MD = Resolution of Stressed Assets.
+# All answerable (no unanswerable items here). Tags: lookup | table | multi-hop | amendment | unanswerable
+doc: 155MD
+items:
+  # ---------- 155MD credit cards ----------
+  - {id: g38, doc: 155MD, tag: lookup, status: verified, verified_by: claude, pages: [8],
+     q: "What must a card-issuer do if a credit card has not been activated by the customer for more than 30 days after issuance?",
+     a: "Seek OTP-based consent from the cardholder to activate it. If no consent is received, close the credit card account at no cost to the customer within seven working days."}
+  - {id: g39, doc: 155MD, tag: lookup, status: verified, verified_by: claude, pages: [12],
+     q: "How long must a card-issuer wait for a reply before closing a credit card that has not been used for more than a year?",
+     a: "It first intimates the cardholder; if no reply is received within 30 days, it closes the card account, subject to payment of all dues."}
+  - {id: g40, doc: 155MD, tag: lookup, status: verified, verified_by: claude, pages: [13],
+     q: "What is the lowest indicative figure the minimum amount due on a credit card bill may be, to avoid negative amortization?",
+     a: "The MAD shall not be less than Rs 250 (indicative figure), so interest or charges are not capitalised in the next statement.", note: "Figure comes from a worked example and is called indicative"}
+  - {id: g41, doc: 155MD, tag: lookup, status: verified, verified_by: claude, pages: [15],
+     q: "Within how many days must a card-issuer explain a bill that the cardholder has protested?",
+     a: "Within a maximum of 30 days from the date of the complaint, with documentary evidence where applicable."}
+  - {id: g42, doc: 155MD, tag: lookup, status: verified, verified_by: claude, pages: [18],
+     q: "After a cardholder who was reported as a defaulter settles the dues, how soon must the card-issuer update the credit information company?",
+     a: "Within 30 days from the date of settlement."}
+
+  # ---------- 172MD green deposits ----------
+  - {id: g43, doc: 172MD, tag: lookup, status: verified, verified_by: claude, pages: [6],
+     q: "In which currency can green deposits be denominated?",
+     a: "Only Indian Rupees, not any foreign currency."}
+  - {id: g44, doc: 172MD, tag: lookup, status: verified, verified_by: claude, pages: [6],
+     q: "Can a bank finance a green project first and raise green deposits for it afterwards?",
+     a: "No. A bank can finance green projects irrespective of raising green deposits, but cannot finance first and raise green deposits thereafter for the same project."}
+  - {id: g45, doc: 172MD, tag: lookup, status: verified, verified_by: claude, pages: [8],
+     q: "Where can a bank temporarily park green deposit proceeds before allocating them, and for how long?",
+     a: "Only in Level 1 High Quality Liquid Assets, up to a maximum original tenure of one year."}
+  - {id: g46, doc: 172MD, tag: lookup, status: verified, verified_by: claude, pages: [11],
+     q: "By when must the review report on green deposits be placed before the Board?",
+     a: "Within three months of the end of the financial year."}
+  - {id: g47, doc: 172MD, tag: lookup, status: verified, verified_by: claude, pages: [7],
+     q: "Are deposits raised under the green deposit framework covered by deposit insurance?",
+     a: "Yes, they are covered by DICGC in accordance with the DICGC Act, 1961 and its regulations."}
+
+  # ---------- 171MD outsourcing ----------
+  - {id: g48, doc: 171MD, tag: lookup, status: verified, verified_by: claude, pages: [11],
+     q: "Does a bank need RBI's prior approval to outsource financial services to a service provider located outside India?",
+     a: "No. Prior approval from RBI is not required whether the service provider is located in or outside India."}
+  - {id: g49, doc: 171MD, tag: lookup, status: verified, verified_by: claude, pages: [11],
+     q: "Which functions can a bank not outsource?",
+     a: "Core management functions, including Internal Audit, the compliance function, and decision-making functions such as determining compliance with KYC norms for opening deposit accounts, sanctioning loans (including retail loans) and managing the investment portfolio."}
+  - {id: g50, doc: 171MD, tag: lookup, status: verified, verified_by: claude, pages: [18],
+     q: "How often must the central record of material outsourcing be reviewed by the Board?",
+     a: "Half-yearly reviews are placed before the Board; the record is updated promptly."}
+  - {id: g51, doc: 171MD, tag: lookup, status: verified, verified_by: claude, pages: [18],
+     q: "How often must a bank review the financial and operational condition of its outsourced service provider?",
+     a: "At least on an annual basis."}
+  - {id: g52, doc: 171MD, tag: lookup, status: verified, verified_by: claude, pages: [5],
+     q: "Can a service provider engage a subcontractor for an outsourced activity without the bank's consent?",
+     a: "No. The outsourcing contract must require the bank's prior approval or consent, and the bank reviews the subcontracting arrangement before consenting."}
+
+  # ---------- 165MD stressed assets ----------
+  - {id: g53, doc: 165MD, tag: lookup, status: verified, verified_by: claude, pages: [15],
+     q: "What majority makes a decision under the inter-creditor agreement binding on all signatories?",
+     a: "Signatories representing 75 per cent by value of total outstanding credit facilities and 60 per cent of signatories by number."}
+  - {id: g54, doc: 165MD, tag: table, status: verified, verified_by: claude, pages: [13],
+     q: "For loans other than revolving facilities, how many days overdue puts an account in the SMA-1 category?",
+     a: "More than 30 days and up to 60 days (SMA-0 is up to 30 days; SMA-2 is more than 60 days and up to 90 days)."}
+  - {id: g55, doc: 165MD, tag: table, status: verified, verified_by: claude, pages: [20],
+     q: "What additional specific provisions must a bank make if a viable resolution plan is not implemented within the timelines?",
+     a: "20 per cent of total outstanding if not implemented within 180 days from the end of the Review Period, and a further 15 per cent if not within 365 days from the commencement of the Review Period (35 per cent in total)."}
+  - {id: g56, doc: 165MD, tag: lookup, status: verified, verified_by: claude, pages: [42],
+     q: "By when must calamity-related resolution be invoked and implemented after the calamity is declared?",
+     a: "Invoked no later than 45 days and implemented within 135 days from the date of declaration of the calamity."}
+  - {id: g57, doc: 165MD, tag: lookup, status: verified, verified_by: claude, pages: [49],
+     q: "What is the maximum period within which a bank must dispose of a specific non-financial asset (SNFA)?",
+     a: "Within the period in the bank's policy, subject to a maximum of seven years.", note: "p13 also mentions a seven-year disposal cap for the policy"}
+  - {id: g58, doc: 165MD, tag: multi-hop, status: verified, verified_by: claude, pages: [41, 42],
+     q: "Which borrowers are eligible for calamity-related resolution, and what is the one-time extension if the 45-day invocation period is missed?",
+     a: "Borrowers classified Standard that are not in default for more than 30 days as on the date of the calamity (p41). If invocation cannot be completed in 45 days, the convenor may ask the RBI Regional Director / Officer-in-Charge for a one-time extension of 30 days (p42)."}

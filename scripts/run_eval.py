@@ -17,11 +17,9 @@ import os
 import subprocess
 import time
 
-import yaml
 
 from regrag.config import ROOT, load_config
-from regrag.evals.benchmark import run_benchmark, summarize
-from regrag.evals.retrieval_recall import load_items
+from regrag.evals.benchmark import load_golden, run_benchmark, summarize
 from regrag.evals.safety import load_safety, run_safety
 from regrag.evals.split import split_items
 from regrag.gate.gate import EvidenceGate
@@ -68,14 +66,19 @@ def main() -> None:
     ap.add_argument("--split", choices=["all", "train", "test"], default="all",
                     help="golden only: seeded split by question tag. Tune thresholds on train, report on test")
     ap.add_argument("--seed", type=int, default=42, help="seed for --split")
+    ap.add_argument("--resume", action="store_true",
+                    help="golden: keep finished answers in evals/results/<suite>_<tag>.<pipeline>.jsonl and skip them on a repeat run (needs --tag)")
+    ap.add_argument("--dry-run", action="store_true", help="print the plan (questions, split, stages) and exit; no models are loaded")
     a = ap.parse_args()
 
     cfg = load_config()
     model = os.environ.get("REGRAG_LLM_MODEL") or cfg["llm"]["generator"]["model"]
-    golden_path = ROOT / cfg["paths"]["golden"] / "seed_kyc.yaml"
+    rerank_planned = a.rerank or a.gate == "reranker_threshold"
+    res_dir = ROOT / "evals" / "results"
+    if a.resume and not a.tag:
+        raise SystemExit("--resume needs a fixed --tag so the repeat run finds the same checkpoint files")
     if a.suite == "golden":
-        items = load_items(golden_path)
-        doc_id = yaml.safe_load(golden_path.read_text(encoding="utf-8"))["doc"]
+        items = load_golden(ROOT / cfg["paths"]["golden"])
     else:
         items = load_safety(ROOT / cfg["paths"]["golden"] / "safety_seed.yaml")
     if a.split != "all":
@@ -84,6 +87,17 @@ def main() -> None:
         items = split_items(items, a.seed)[0 if a.split == "train" else 1]
     if a.limit:
         items = items[: a.limit]
+    if a.dry_run:
+        by_tag: dict[str, int] = {}
+        for it in items:
+            kind = it.get("tag", it.get("type", "?"))
+            by_tag[kind] = by_tag.get(kind, 0) + 1
+        stages = (["rewrite"] if a.rewrite else []) + ["retrieve"] + (["rerank"] if rerank_planned else []) + ["answer"]
+        print(f"DRY RUN: suite={a.suite} split={a.split} seed={a.seed} model={model} gate={a.gate} "
+              f"check_numbers={a.check_numbers} pipelines={a.pipelines}")
+        print(f"  {len(items)} questions {by_tag}")
+        print(f"  stages: {' -> '.join(stages)}")
+        return
     # what the pipeline will actually retrieve for: masked questions that are on topic
     qs = [mask_pii(it["q"])[0] for it in items]
     qs = [q for q in qs if not is_off_topic(q)]
@@ -158,14 +172,15 @@ def main() -> None:
                               redact_pii=g["redact_pii"], block_off_topic=g["block_off_topic"], no_advice=g["no_advice"],
                               retrieval_gate=retrieval_gate)
         if a.suite == "golden":
-            rows = run_benchmark(pipe, items, doc_id)
+            ckpt = res_dir / f"golden_{a.tag}.{name}.jsonl" if a.resume else None
+            rows = run_benchmark(pipe, items, checkpoint=ckpt)
             out["pipelines"][name] = {"summary": summarize(rows), "rows": rows}
         else:
             out["pipelines"][name] = run_safety(pipe, items)
         print(name, json.dumps(out["pipelines"][name].get("summary", {k: v for k, v in out["pipelines"][name].items() if k != "rows"}), indent=1), flush=True)
     free_ollama(model)
 
-    res = ROOT / "evals" / "results"
+    res = res_dir
     res.mkdir(parents=True, exist_ok=True)
     path = res / f"{a.suite}_{a.tag or time.strftime('%Y%m%d_%H%M')}.json"
     path.write_text(json.dumps(out, indent=1, ensure_ascii=False), encoding="utf-8")
