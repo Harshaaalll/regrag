@@ -92,6 +92,18 @@ How far to trust it: only 26 questions (one question is about 4 points), a small
 
 Generation smoke test (no scores): with a small model (`qwen3:1.7b`, used because of low RAM), 1 lookup question was answered correctly with a page citation, 3 unanswerable questions were correctly refused, and 1 multi-hop question was wrongly refused. This is 5 questions, not a measurement.
 
+### Vector store check (Chroma vs Faiss, exploratory)
+
+Chroma is the default store. Faiss (flat and HNSW) is an optional drop-in (`REGRAG_VECTORDB=faiss-flat`, install with `pip install -e ".[faiss]"`). `scripts/compare_vectorstores.py` reuses Chroma's stored vectors, so no embedding model is needed. One run on the 437-chunk index on a busy laptop:
+
+| Store | Median search (ms) | Top-5 same as Chroma |
+|---|---|---|
+| Chroma | 4.2 | - |
+| Faiss flat (exact) | 0.29 | 1.00 |
+| Faiss HNSW | 0.17 | 1.00 |
+
+The queries are the stored vectors themselves, so agreement is easy. A separate **synthetic** test (20,000 jittered copies of real vectors, timing only) gave 17.1 ms for flat and 0.12 ms for HNSW per search; HNSW accuracy at that size was **not** measured. At this project's size (thousands of chunks) every option is fast enough, so the choice is about convenience, not speed. Not a claim about millions of documents. Pinecone (a paid cloud service) is not tested because the project is local-first.
+
 ### Results
 
 _Not measured yet._
@@ -126,7 +138,7 @@ src/regrag/      ingestion, chunking, embeddings, vectordb, retrieval,
                  pipelines, gate, llm, evals, api, utils
 scripts/         register_pdfs.py (update MANIFEST.json), build_index.py (embed into Chroma),
                  run_eval.py (staged benchmark / safety runner)
-tests/           49 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
+tests/           54 unit tests (chunker, BM25, hybrid fusion, RAG pipeline, guardrails, gate, rewriting, agentic retriever, eval runners)
 evals/golden/    question sets: seed_kyc.yaml (36 questions) and seed_other_docs.yaml (21 questions on 4 other documents), 57 in total, 10 unanswerable, safety_seed.yaml
 data/raw/        RBI PDFs (not committed) + MANIFEST.json (source, date, checksum)
 docs/PLAN.md     decisions and milestones

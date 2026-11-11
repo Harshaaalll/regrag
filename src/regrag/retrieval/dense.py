@@ -2,11 +2,11 @@ from __future__ import annotations
 
 from regrag.embeddings.bge import Embedder
 from regrag.types import Chunk
-from regrag.vectordb.chroma_store import ChromaStore
+from regrag.vectordb.base import VectorStore
 
 
 class DenseRetriever:
-    def __init__(self, embedder: Embedder, store: ChromaStore, doc_ids: list[str] | None = None) -> None:
+    def __init__(self, embedder: Embedder, store: VectorStore, doc_ids: list[str] | None = None) -> None:
         self.embedder, self.store, self.doc_ids = embedder, store, doc_ids
 
     def search(self, query: str, k: int = 20) -> list[tuple[Chunk, float]]:

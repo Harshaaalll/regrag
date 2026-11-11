@@ -1,0 +1,32 @@
+{
+ "chunks": 437,
+ "queries": 100,
+ "dim": 1024,
+ "stores": {
+  "chroma": {
+   "search_ms_median": 4.2
+  },
+  "faiss-flat": {
+   "build_s": 1.27,
+   "search_ms_median": 0.29,
+   "top5_overlap_with_chroma": 1.0
+  },
+  "faiss-hnsw": {
+   "build_s": 0.13,
+   "search_ms_median": 0.17,
+   "top5_overlap_with_chroma": 1.0
+  }
+ },
+ "synthetic_scale": {
+  "vectors": 20000,
+  "note": "jittered copies of real vectors; timing only, not accuracy",
+  "flat": {
+   "build_s": 0.04,
+   "search_ms_median": 17.128
+  },
+  "hnsw": {
+   "build_s": 1.98,
+   "search_ms_median": 0.116
+  }
+ }
+}

@@ -13,7 +13,7 @@ from regrag.retrieval.agentic import AgenticRetriever
 from regrag.retrieval.bm25 import BM25Retriever
 from regrag.retrieval.dense import DenseRetriever
 from regrag.retrieval.hybrid import HybridRetriever
-from regrag.vectordb.chroma_store import ChromaStore
+from regrag.vectordb.factory import make_store
 
 
 @register
@@ -34,7 +34,7 @@ class AgenticRAG(RagPipeline):
 def make_retriever(name: str, skip: tuple[str, ...] = ("151MD",)):
     """classic = dense only; hybrid = BM25 + dense (RRF). Needs the on-disk index (scripts/build_index.py)."""
     cfg = load_config()
-    store = ChromaStore(ROOT / cfg["paths"]["index"])
+    store = make_store(ROOT / cfg["paths"]["index"])
     ch = cfg["chunking"]
     # Corpus = documents fully embedded in the index (a half-indexed document would give BM25 and dense different corpora).
     indexed, chunks, docs = store.doc_counts(), [], []

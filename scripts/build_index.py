@@ -13,7 +13,7 @@ from regrag.chunking.heading_aware import chunk_pages
 from regrag.config import ROOT, load_config
 from regrag.embeddings.bge import Embedder
 from regrag.ingestion.loader import load_pdf
-from regrag.vectordb.chroma_store import ChromaStore
+from regrag.vectordb.factory import make_store
 
 BATCH = 32  # chunks embedded and written per step
 
@@ -31,10 +31,10 @@ def main() -> None:
         print(f"{pdf.name}: {len(pieces)} chunks", flush=True)
         chunks.extend(pieces)
 
-    store = ChromaStore(ROOT / cfg["paths"]["index"])
+    store = make_store(ROOT / cfg["paths"]["index"])
     for doc in skip:  # keep the index consistent with the corpus
-        store._col.delete(where={"doc_id": doc})
-    done = set(store._col.get(include=[])["ids"])
+        store.delete_doc(doc)
+    done = store.ids()
     todo = [c for c in chunks if c.id not in done]
     print(f"{len(chunks)} chunks total, {len(todo)} to embed", flush=True)
     if not todo:

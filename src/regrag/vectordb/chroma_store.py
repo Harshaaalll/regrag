@@ -24,6 +24,12 @@ class ChromaStore:
             metadatas=[{"doc_id": c.doc_id, "page": c.page or 0, "section": c.section or ""} for c in chunks],
         )
 
+    def ids(self) -> set[str]:
+        return set(self._col.get(include=[])["ids"])
+
+    def delete_doc(self, doc_id: str) -> None:
+        self._col.delete(where={"doc_id": doc_id})
+
     def doc_counts(self) -> dict[str, int]:
         counts: dict[str, int] = {}
         for m in self._col.get(include=["metadatas"])["metadatas"]:

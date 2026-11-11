@@ -16,6 +16,6 @@ jobs:
       - name: Install (CPU-only torch keeps the download small)
         run: |
           pip install torch --index-url https://download.pytorch.org/whl/cpu
-          pip install -e ".[dev]"
+          pip install -e ".[dev,faiss]"
       - name: Unit tests (fake models, no downloads, no Ollama)
         run: pytest -q

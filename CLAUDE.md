@@ -21,6 +21,7 @@ Local, evidence-gated RAG benchmark over RBI Master Directions. Portfolio projec
 
 - Decided 2026-11-05 (replaces "Harshal runs heavy jobs himself"): the laptop was too slow/low on RAM, so heavy runs (index build, benchmark) move to a manual GitHub Actions workflow `.github/workflows/benchmark.yml` (setup in `docs/BENCHMARK_CI.md`; PDFs fetched from a private Hugging Face dataset; Harshal sets the tokens, never me). Written, never run. Local runs (`scripts/run_all.cmd`) remain possible with 3+ GB free.
 - Decided 2026-11-10: Harshal has a Gemini Pro account. Plan: (1) optional, flagged cloud judge for answer correctness (`src/regrag/evals/judge.py`, `scripts/judge_results.py`; key = `GEMINI_API_KEY` set by Harshal, never shown to me; only question + reference + answer are sent, no PDF text; written from memory of the google-genai SDK, NOT yet run), (2) later a Colab notebook as a backup for heavy runs. Check what his plan includes; Colab/A100 details came from a pasted social post and are unverified.
+- Decided 2026-11-11: Chroma stays the default vector store; Faiss (flat/HNSW) added as an optional drop-in behind `vectordb/base.py::VectorStore` (`make_store`, env `REGRAG_VECTORDB`), compared with `scripts/compare_vectorstores.py`. Pinecone not used (paid cloud, not local-first).
 
 ## Code conventions
 - Source in `src/regrag/` (layout in README). Every RAG variant implements `pipelines/base.py::Pipeline` so the benchmark can swap them. Shared types in `types.py`; settings read from `config.yaml` via `config.py`.
